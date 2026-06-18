@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
   let stateData;
   try {
-    stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf8'));
+  stateData = JSON.parse(decodeURIComponent(escape(Buffer.from(state, 'base64').toString('binary'))));
   } catch {
     return res.redirect('/?error=invalid_state');
   }

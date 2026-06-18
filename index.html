@@ -313,9 +313,6 @@
 
   </div>
 
-</div>
-<script src="main.js"></script>
-<script src="callback.js"></script>
 <script>
 var BASE_URL = window.location.origin;
 var REDIRECT_URI = BASE_URL + '/api/callback';
@@ -371,11 +368,14 @@ function doSpotifyLogin() {
   var cs  = sessionStorage.getItem('sp_cs');
   if (!cid || !cs) { goStep1(); return; }
 
-  var state = btoa(JSON.stringify({
+  // Gunakan encodeURIComponent-safe base64
+  var stateObj = JSON.stringify({
     clientId: cid,
     clientSecret: cs,
     redirectUri: REDIRECT_URI
-  }));
+  });
+  // btoa aman untuk JSON murni (no Unicode), tapi pakai unescape trick untuk keamanan
+  var state = btoa(unescape(encodeURIComponent(stateObj)));
 
   var url = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
     response_type: 'code',
