@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotify Now Playing — Setup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #0a0a12;
+    --surface: #12111e;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(124,111,224,0.35);
+    --accent:  #7c6fe0;
+    --accent2: #1da874;
+    --text:    #e8e6f4;
+    --muted:   rgba(232,230,244,0.45);
+    --err:     #e05252;
+    --radius:  12px;
+    --mono:    'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* --- layout --- */
+  .wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+
+  /* --- header --- */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+  .logo-dot {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .logo h1 {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+
+  /* --- step pill --- */
+  .step-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+  .step-pill {
+    flex: 1;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .step-pill.active { background: var(--accent); }
+  .step-pill.done   { background: var(--accent2); }
+
+  /* --- cards --- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  /* --- form --- */
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], input[type="password"], input[type="url"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--mono);
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); }
+  input.error { border-color: var(--err); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .hint a { color: var(--accent); text-decoration: none; }
+  .hint a:hover { text-decoration: underline; }
+
+  /* --- toggle password --- */
+  .input-wrap { position: relative; }
+  .input-wrap input { padding-right: 42px; }
+  .eye-btn {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); font-size: 16px; padding: 2px;
+    transition: color 0.2s;
+  }
+  .eye-btn:hover { color: var(--text); }
+
+  /* --- buttons --- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-decoration: none;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #5a50c8);
+    color: #fff;
+    width: 100%;
+    margin-top: 20px;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-spotify {
+    background: #1DB954;
+    color: #000;
+    width: 100%;
+    margin-top: 12px;
+    font-size: 15px;
+    padding: 14px;
+  }
+  .btn-spotify:hover { opacity: 0.88; }
+
+  /* --- error banner --- */
+  .error-banner {
+    background: rgba(224,82,82,0.1);
+    border: 1px solid rgba(224,82,82,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #f08080;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-banner.show { display: block; }
+
+  /* --- steps visibility --- */
+  .step { display: none; }
+  .step.active { display: block; }
+
+  /* --- info box --- */
+  .info-box {
+    background: rgba(124,111,224,0.08);
+    border: 1px solid rgba(124,111,224,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 16px;
+  }
+  .info-box strong { color: var(--text); }
+
+  /* --- numbered list --- */
+  .steps-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .steps-list li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    background: rgba(124,111,224,0.15);
+    border: 1px solid rgba(124,111,224,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: var(--accent);
+  }
+  .steps-list a { color: var(--accent); text-decoration: none; }
+  .steps-list a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <h1>Now Playing <span>/ Spotify Setup</span></h1>
+  </div>
+
+  <div class="step-row">
+    <div class="step-pill active" id="pill-1"></div>
+    <div class="step-pill" id="pill-2"></div>
+  </div>
+
+  <div id="error-banner" class="error-banner"></div>
+
+  <!-- ===================== STEP 1 ===================== -->
+  <div class="step active" id="step-1">
+
+    <div class="card">
+      <div class="card-title">Langkah 1 — Spotify App</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+        Kamu butuh app di Spotify Developer Dashboard untuk mendapatkan Client ID dan Secret.
+      </p>
+      <ul class="steps-list">
+        <li><span class="num">1</span><span>Buka <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> dan login.</span></li>
+        <li><span class="num">2</span><span>Klik <strong>Create app</strong> → isi nama bebas → centang <strong>Web API</strong>.</span></li>
+        <li><span class="num">3</span><span>Di <strong>Redirect URIs</strong>, masukkan URL di bawah ini persis.</span></li>
+        <li><span class="num">4</span><span>Salin <strong>Client ID</strong> dan <strong>Client Secret</strong> dari halaman Settings.</span></li>
+      </ul>
+
+      <div class="info-box" style="margin-top:16px;">
+        <strong>Redirect URI yang harus kamu daftarkan:</strong><br>
+        <span id="redirect-uri-display" style="font-family:var(--mono); font-size:12px; word-break:break-all;"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Masukkan Credentials</div>
+
+      <label for="clientId">Client ID</label>
+      <input type="text" id="clientId" placeholder="a1b2c3d4e5f6...">
+
+      <label for="clientSecret">Client Secret</label>
+      <div class="input-wrap">
+        <input type="password" id="clientSecret" placeholder="••••••••••••••••">
+        <button class="eye-btn" onclick="toggleSecret()" id="eye-btn" title="Tampilkan/sembunyikan">👁</button>
+      </div>
+      <p class="hint">Client Secret tidak dikirim ke server manapun — hanya disimpan di browser kamu untuk generate link.</p>
+
+      <button class="btn btn-primary" onclick="goStep2()" id="btn-next">
+        Lanjut ke Login Spotify →
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ===================== STEP 2 ===================== -->
+  <div class="step" id="step-2">
+
+    <div class="card">
+      <div class="card-title">Langkah 2 — Autorisasi Spotify</div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:8px;">
+        Klik tombol di bawah untuk login ke Spotify dan memberikan izin baca status lagu.
+        Kamu akan diarahkan kembali ke halaman ini secara otomatis.
+      </p>
+      <div class="info-box">
+        <strong>Izin yang diminta:</strong> hanya membaca lagu yang sedang diputar. Tidak ada izin untuk memodifikasi playlist atau akun.
+      </div>
+      <button class="btn btn-spotify" onclick="doSpotifyLogin()">
+        🎵 &nbsp;Login dengan Spotify
+      </button>
+    </div>
+
+    <div class="card" style="opacity:0.5">
+      <div class="card-title">Setelah login...</div>
+      <p style="font-size:13px; color:var(--muted);">
+        Proxy URL dan kode widget SE akan muncul otomatis di halaman berikutnya. Tinggal copy-paste ke StreamElements.
+      </p>
+    </div>
+
+    <button onclick="goStep1()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-top:4px;">
+      ← Kembali ubah credentials
+    </button>
+
+  </div>
+
+</div>
+<script src="main.js"></script>
+<script src="callback.js"></script>
+<script>
+var BASE_URL = window.location.origin;
+var REDIRECT_URI = BASE_URL + '/api/callback';
+
+document.getElementById('redirect-uri-display').textContent = REDIRECT_URI;
+
+// Check for error in URL
+var params = new URLSearchParams(location.search);
+if (params.get('error')) {
+  showError('Login gagal: ' + params.get('error') + '. Pastikan Redirect URI sudah benar di Spotify Dashboard.');
+}
+
+function showError(msg) {
+  var el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function toggleSecret() {
+  var inp = document.getElementById('clientSecret');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function goStep1() {
+  document.getElementById('step-1').classList.add('active');
+  document.getElementById('step-2').classList.remove('active');
+  document.getElementById('pill-1').classList.add('active');
+  document.getElementById('pill-2').classList.remove('active');
+}
+
+function goStep2() {
+  var cid = document.getElementById('clientId').value.trim();
+  var cs  = document.getElementById('clientSecret').value.trim();
+  if (!cid || !cs) {
+    document.getElementById('error-banner').textContent = 'Client ID dan Client Secret harus diisi.';
+    document.getElementById('error-banner').classList.add('show');
+    return;
+  }
+  document.getElementById('error-banner').classList.remove('show');
+  // Simpan ke sessionStorage sementara
+  sessionStorage.setItem('sp_cid', cid);
+  sessionStorage.setItem('sp_cs', cs);
+
+  document.getElementById('step-1').classList.remove('active');
+  document.getElementById('step-2').classList.add('active');
+  document.getElementById('pill-1').classList.remove('active');
+  document.getElementById('pill-1').classList.add('done');
+  document.getElementById('pill-2').classList.add('active');
+}
+
+function doSpotifyLogin() {
+  var cid = sessionStorage.getItem('sp_cid');
+  var cs  = sessionStorage.getItem('sp_cs');
+  if (!cid || !cs) { goStep1(); return; }
+
+  var state = btoa(JSON.stringify({
+    clientId: cid,
+    clientSecret: cs,
+    redirectUri: REDIRECT_URI
+  }));
+
+  var url = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
+    response_type: 'code',
+    client_id: cid,
+    scope: 'user-read-currently-playing user-read-playback-state',
+    redirect_uri: REDIRECT_URI,
+    state: state
+  });
+
+  window.location.href = url;
+}
+</script>
+</body>
+</html>
