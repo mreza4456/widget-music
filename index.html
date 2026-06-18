@@ -246,25 +246,25 @@
   <div class="step active" id="step-1">
 
     <div class="card">
-      <div class="card-title">Langkah 1 — Spotify App</div>
+      <div class="card-title">Step 1 — Spotify App</div>
       <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
-        Kamu butuh app di Spotify Developer Dashboard untuk mendapatkan Client ID dan Secret.
+        You need an app in the Spotify Developer Dashboard to get a Client ID and Secret.
       </p>
       <ul class="steps-list">
-        <li><span class="num">1</span><span>Buka <a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> dan login.</span></li>
-        <li><span class="num">2</span><span>Klik <strong>Create app</strong> → isi nama bebas → centang <strong>Web API</strong>.</span></li>
-        <li><span class="num">3</span><span>Di <strong>Redirect URIs</strong>, masukkan URL di bawah ini persis.</span></li>
-        <li><span class="num">4</span><span>Salin <strong>Client ID</strong> dan <strong>Client Secret</strong> dari halaman Settings.</span></li>
+        <li><span class="num">1</span><span>Open<a href="https://developer.spotify.com/dashboard" target="_blank">developer.spotify.com/dashboard</a> dan login.</span></li>
+        <li><span class="num">2</span><span>Click <strong>Create app</strong> → Enter any name → Check the box <strong>Web API</strong>.</span></li>
+        <li><span class="num">3</span><span>In<strong>Redirect URIs</strong>, enter the URL below </span></li>
+        <li><span class="num">4</span><span>Copy <strong>Client ID</strong> and <strong>Client Secret</strong> from the Settings page.</span></li>
       </ul>
 
       <div class="info-box" style="margin-top:16px;">
-        <strong>Redirect URI yang harus kamu daftarkan:</strong><br>
+        <strong>Redirect URI that you must register:</strong><br>
         <span id="redirect-uri-display" style="font-family:var(--mono); font-size:12px; word-break:break-all;"></span>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Masukkan Credentials</div>
+      <div class="card-title">Enter Credentials</div>
 
       <label for="clientId">Client ID</label>
       <input type="text" id="clientId" placeholder="a1b2c3d4e5f6...">
@@ -274,10 +274,10 @@
         <input type="password" id="clientSecret" placeholder="••••••••••••••••">
         <button class="eye-btn" onclick="toggleSecret()" id="eye-btn" title="Tampilkan/sembunyikan">👁</button>
       </div>
-      <p class="hint">Client Secret tidak dikirim ke server manapun — hanya disimpan di browser kamu untuk generate link.</p>
+      <p class="hint">The client secret is not sent to any server—it is stored only in your browser to generate links.</p>
 
       <button class="btn btn-primary" onclick="goStep2()" id="btn-next">
-        Lanjut ke Login Spotify →
+        Next to Spotify Login →
       </button>
     </div>
 
@@ -287,28 +287,28 @@
   <div class="step" id="step-2">
 
     <div class="card">
-      <div class="card-title">Langkah 2 — Autorisasi Spotify</div>
+      <div class="card-title">Step 2 — Spotify Authorization</div>
       <p style="font-size:13px; color:var(--muted); margin-bottom:8px;">
-        Klik tombol di bawah untuk login ke Spotify dan memberikan izin baca status lagu.
-        Kamu akan diarahkan kembali ke halaman ini secara otomatis.
+        Click the button below to login to Spotify and grant permission to read your currently playing song.
+        You will be redirected back to this page automatically.
       </p>
       <div class="info-box">
-        <strong>Izin yang diminta:</strong> hanya membaca lagu yang sedang diputar. Tidak ada izin untuk memodifikasi playlist atau akun.
+        <strong>Permissions requested:</strong> only reading the song currently playing. No permissions to modify playlists or accounts.
       </div>
       <button class="btn btn-spotify" onclick="doSpotifyLogin()">
-        🎵 &nbsp;Login dengan Spotify
+        🎵 &nbsp;Login with Spotify
       </button>
     </div>
 
     <div class="card" style="opacity:0.5">
-      <div class="card-title">Setelah login...</div>
+      <div class="card-title">After login...</div>
       <p style="font-size:13px; color:var(--muted);">
-        Proxy URL dan kode widget SE akan muncul otomatis di halaman berikutnya. Tinggal copy-paste ke StreamElements.
+        Proxy URL and SE widget code will appear automatically on the next page. Just copy-paste to StreamElements.
       </p>
     </div>
 
     <button onclick="goStep1()" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;margin-top:4px;">
-      ← Kembali ubah credentials
+      ← Go back to change credentials
     </button>
 
   </div>
@@ -322,7 +322,7 @@ document.getElementById('redirect-uri-display').textContent = REDIRECT_URI;
 // Check for error in URL
 var params = new URLSearchParams(location.search);
 if (params.get('error')) {
-  showError('Login gagal: ' + params.get('error') + '. Pastikan Redirect URI sudah benar di Spotify Dashboard.');
+  showError('Login failed: ' + params.get('error') + '. Please make sure the Redirect URI is correctly registered in the Spotify Developer Dashboard.');
 }
 
 function showError(msg) {
@@ -347,7 +347,7 @@ function goStep2() {
   var cid = document.getElementById('clientId').value.trim();
   var cs  = document.getElementById('clientSecret').value.trim();
   if (!cid || !cs) {
-    document.getElementById('error-banner').textContent = 'Client ID dan Client Secret harus diisi.';
+    document.getElementById('error-banner').textContent = 'Client ID and Client Secret must be filled out.';
     document.getElementById('error-banner').classList.add('show');
     return;
   }
