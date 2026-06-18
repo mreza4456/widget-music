@@ -17,14 +17,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'invalid_token', isPlaying: false });
     }
 
-    const { access, refresh, clientId, clientSecret } = tokens;
+let { access, refresh, clientId, clientSecret } = tokens;
     if (!access || !refresh || !clientId || !clientSecret) {
         return res.status(400).json({ error: 'incomplete_token', isPlaying: false });
     }
 
     let result = await fetchCurrentlyPlaying(access);
 
-    if (result.status === 401) {
+ if (result.status === 401) {
         const newAccess = await refreshAccessToken(refresh, clientId, clientSecret);
         if (!newAccess) {
             return res.json({ isPlaying: false, error: 'refresh_failed' });
@@ -34,6 +34,9 @@ export default async function handler(req, res) {
             access: newAccess, refresh, clientId, clientSecret
         })).toString('base64');
         res.setHeader('X-New-Token', newEncoded);
+        
+        // ✅ Update access ke token baru
+        access = newAccess;  // <-- tambah ini
     }
 
     if (result.status === 204 || !result.data) {
@@ -47,17 +50,18 @@ export default async function handler(req, res) {
     const item = result.data.item;
 
     // ✅ Fix #1: pakai item.id dan access (bukan trackId / token)
-    // ✅ Fix #2: try-catch supaya podcast/episode tidak crash
+    // ✅ Fix #2: try-catch supaya podcast/episode tidak crash 
     let tempo = null;
-    try {
+   try {
         const fr = await fetch(
             `https://api.spotify.com/v1/audio-features/${item.id}`,
             { headers: { Authorization: `Bearer ${access}` } }
         );
         const features = await fr.json();
+        console.log('[AUDIO FEATURES]', fr.status, JSON.stringify(features)); // <-- tambah ini
         tempo = features?.tempo ?? null;
-    } catch {
-        // episode atau podcast tidak punya audio features, skip
+    } catch (e) {
+        console.log('[AUDIO FEATURES ERROR]', e.message);
     }
 
     res.json({
